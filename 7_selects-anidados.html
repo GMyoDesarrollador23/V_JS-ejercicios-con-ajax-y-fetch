@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Selects Anidados</title>
+  </head>
+
+  <body>
+    <h1>Selects Anidados</h1>
+    <h2>México</h2>
+    <label for="select-primary">Estados</label>
+    <select name="primary" id="select-primary">
+      <option value="">Elige un Estado</option>
+    </select>
+    <p></p>
+
+    <label for="select-secondary">Municipios</label>
+    <select name="secondary" id="select-secondary">
+      <option value="">Elige un Muinicipio</option>
+    </select>
+    <p></p>
+
+    <label for="select-third">Colonias</label>
+    <select name="third" id="select-third">
+      <option value="">Elige una Colonia</option>
+    </select>
+    <p></p>
+    <script>
+      /* ********** Curso JavaScript: 138. Ejercicios AJAX - APIs: Selects Anidados con Fetch - #jonmircha ********** */
+      /*
+    https://api-sepomex.hckdrk.mx/
+    https://api-sepomex.hckdrk.mx/documentacion/docs
+  */
+      const d = document;
+      const $selectPrimary = d.getElementById("select-primary"),
+        $selectSecondary = d.getElementById("select-secondary");
+      $selectThird = d.getElementById("select-third");
+
+      const loadStates = async () => {
+        try {
+          let res = await fetch(
+            "https://api-sepomex.hckdrk.mx/query/get_estados"
+          );
+          let json = await res.json();
+
+          // console.log(json);
+          let $options = `<option value="">Elige un estado</option>`;
+          json.response.estado.forEach(
+            (el) => ($options += `<option value="${el}">${el}</option>`)
+          );
+          $selectPrimary.innerHTML = $options;
+        } catch (error) {
+          console.warn(error);
+          let message = error.statusText || "Ocurrio un error";
+          $selectPrimary.nextElementSibling.innerHTML = `Error: ${error.status}: ${message}`;
+        }
+      };
+
+      const loadTowns = async (state) => {
+        try {
+          let res = await fetch(
+            `https://api-sepomex.hckdrk.mx/query/get_municipio_por_estado/${state}`
+          );
+          let json = await res.json();
+
+          let { municipios } = json.response;
+          const $fracment = d.createDocumentFragment();
+          municipios.forEach((el) => {
+            let option = d.createElement("option");
+
+            option.setAttribute("value", el);
+            option.innerHTML = el;
+            $fracment.appendChild(option);
+          });
+          $selectSecondary.appendChild($fracment);
+        } catch (error) {
+          console.warn(error);
+          let message = error.statusText || "Ocurrio un error";
+          $selectSecondary.nextElementSibling.innerHTML = `Error: ${error.status}: ${message}`;
+        }
+      };
+
+      const loadSuburb = async (e) => {
+        try {
+          let res = await fetch(
+            `https://api-sepomex.hckdrk.mx/query/get_colonia_por_municipio/${e}`
+          );
+          let json = await res.json();
+
+          let $options = `<option value="">Elige un estado</option>`;
+
+          json.response.colonia.forEach(
+            (el) => ($options += `<option value="${el}">${el}</option>`)
+          );
+          $selectThird.innerHTML = $options;
+        } catch (error) {
+          console.warn(error);
+          let message = error.statusText || "Ocurrio un error";
+          $selectThird.nextElementSibling.innerHTML = `Error: ${error.status}: ${message}`;
+        }
+      };
+
+      d.addEventListener("DOMContentLoaded", loadStates);
+      $selectPrimary.addEventListener("change", (e) =>
+        loadTowns(e.target.value)
+      );
+      $selectSecondary.addEventListener("change", (e) =>
+        loadSuburb(e.target.value)
+      );
+    </script>
+  </body>
+</html>
